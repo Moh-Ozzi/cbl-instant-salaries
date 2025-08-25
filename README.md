@@ -1,21 +1,36 @@
-# لوحية متابعة الإدخال (Dash)
+# CBL Instant Salaries Dashboard
 
-تطبيق Dash جاهز للعمل باستخدام بيانات ملف Excel لديك.
+An interactive web dashboard for the **Central Bank of Libya’s (CBL) Instant Salaries service**.  
+CBL currently shares this data as an Excel file on their public website. This project transforms that file into a live, interactive dashboard using [Dash](https://dash.plotly.com/).
 
-## التشغيل محليًا
-1) أنشئ بيئة Python (اختياري).
-2) ثبّت الاعتمادات:
-```
+---
+
+## Overview
+- Displays key summary indicators:
+  - Total citizens
+  - Total bank accounts
+  - Accounts not entered
+  - Average entry percentage (weighted)
+- Interactive horizontal bar charts by **region** and by **organization**.
+- Filter controls for region and organization, plus sorting options.
+
+---
+
+## Tech Stack
+- [Dash](https://dash.plotly.com/) (Plotly + Flask)  
+- [dash-bootstrap-components](https://dash-bootstrap-components.opensource.faculty.ai/)  
+- [dash-bootstrap-templates](https://github.com/AnnMarieW/dash-bootstrap-templates)  
+- [pandas](https://pandas.pydata.org/) for data processing  
+- Hosted on [Render](https://render.com/)  
+
+---
+
+## Deployment
+The app is deployed on Render and automatically updates on every push to GitHub.  
+
+### Run locally
+```bash
+git clone https://github.com/<your-username>/<your-repo>.git
+cd <your-repo>
 pip install -r requirements.txt
-```
-3) ضع ملف Excel داخل نفس المجلد باسم **data.xlsx** (أو استخدم زر الرفع داخل التطبيق).
-4) شغّل:
-```
 python app.py
-```
-ثم افتح المتصفح على: http://127.0.0.1:8050
-
-## ملاحظات
-- يمكنك رفع ملف جديد من داخل الواجهة وسيتم حفظه كـ `data.xlsx`.
-- يوجد تصفية حسب المنطقة والجهة وبحث نصي.
-- أعلى اللوحة بطاقات ملخص، وأسفلها 3 رسوم بيانية وجدول تفصيلي باستخدام **dash-ag-grid**.
