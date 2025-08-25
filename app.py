@@ -97,15 +97,24 @@ app.index_string = app.index_string.replace(
 # --------------------------
 def kpi_card(title: str, value: str = "—", sub: str = None, id: str = None):
     return dbc.Card(
-        dbc.CardBody([
-            html.Div(title, className="text-muted"),
-            html.H3(value, className="my-1"),
-            html.Small(sub, className="text-secondary") if sub else None,
-        ], className="d-flex flex-column align-items-center text-center"),
-        className="shadow shadow-custom border-0 rounded-3 bg-white",
-        id=id,
+        dbc.CardBody(
+            # inner container holds dynamic content and keeps centering
+            html.Div(
+                [
+                    html.Div(title, className="text-muted"),
+                    html.H3(value, className="my-1"),
+                    html.Small(sub, className="text-secondary") if sub else None,
+                ],
+                id=id,  # <-- set id here (NOT on the Card)
+                className="d-flex flex-column justify-content-center align-items-center text-center w-100 h-100"
+            ),
+            className="p-3",  # body padding
+        ),
+        className="shadow shadow-custom border-0 rounded-3 bg-white h-100 w-100",
         style={"minHeight": "100px"},
     )
+
+
 
 controls = dbc.Card(
     dbc.CardBody([
@@ -213,11 +222,11 @@ app.layout = dbc.Container([
         dbc.Col([
             # KPI row (values populated by callback on initial load)
             dbc.Row([
-                dbc.Col(kpi_card("إجمالي المواطنين", id="kpi-citizens"), md=3),
-                dbc.Col(kpi_card("إجمالي الحسابات المصرفية", id="kpi-accounts"), md=3),
-                dbc.Col(kpi_card("حسابات غير مُدخلة", id="kpi-missing"), md=3),
-                dbc.Col(kpi_card("متوسط نسبة الإدخال", id="kpi-rate"), md=3),
-            ], className="g-3 my-1 flex-row-reverse"),
+                dbc.Col(kpi_card("إجمالي المواطنين", id="kpi-citizens"), md=3, className="d-flex"),
+                dbc.Col(kpi_card("إجمالي الحسابات المصرفية", id="kpi-accounts"), md=3, className="d-flex"),
+                dbc.Col(kpi_card("حسابات غير مُدخلة", id="kpi-missing"), md=3, className="d-flex"),
+                dbc.Col(kpi_card("متوسط نسبة الإدخال", id="kpi-rate"), md=3, className="d-flex"),
+            ], className="g-3 my-1 flex-row-reverse align-items-stretch"),
 
             # Charts
             dbc.Row([
@@ -228,7 +237,23 @@ app.layout = dbc.Container([
 
         # Right controls
         dbc.Col(html.Div(controls, className="sticky-top", style={"top": "1rem"}), md=3),
-    ], className="g-3 flex-row-reverse")
+    ], className="g-3 flex-row-reverse"),
+
+html.Footer(
+        dbc.Container(
+            html.P(
+                [
+                    "Developed by ",
+                    html.A("Mohamed Elauzei",
+                           href="https://www.linkedin.com/in/mohamedelauzei/",
+                           target="_blank",
+                           className="text-decoration-none fw-bold")
+                ],
+                className="text-center text-muted my-4"
+            )
+        ),
+        style={"backgroundColor": "#f8f9fa"}
+    )
 ], fluid=True, style={"backgroundColor": "#f8f9fa", "minHeight": "100vh"})
 
 
