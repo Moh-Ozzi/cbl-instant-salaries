@@ -37,7 +37,9 @@ def load_data(path: Path) -> pd.DataFrame:
     df.columns = [c.strip() for c in df.columns]
     for c in ["المنطقة", "الجهة"]:
         if c in df.columns:
-            df[c] = df[c].astype(str).str.strip()
+            df[c] = df[c].fillna("غير محددة")  # replace NaN with text
+            df[c] = df[c].astype(str).str.strip()  # strip whitespace
+            df[c] = df[c].replace({"nan": "غير محددة", "": "غير محددة"})  # catch empty strings
 
     # Numerics
     for c in ["عدد الحسابات المصرفية", "عدد المواطنين", "عدد الحسابات التي لم يتم إدخاله", "نسبة الإدخال"]:
