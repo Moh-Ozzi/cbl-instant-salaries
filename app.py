@@ -1,28 +1,36 @@
 import pandas as pd
 from pathlib import Path
 
-import dash
 from dash import Dash, html, dcc, Input, Output, State, callback_context, no_update
 import dash_bootstrap_components as dbc
 import plotly.express as px
 from dash_bootstrap_templates import load_figure_template
-
+import os
+import requests
+from apscheduler.schedulers.background import BackgroundScheduler
+import datetime
 
 # --------------------------
 # Theme & Templates
 # --------------------------
 load_figure_template("flatly")
 px.defaults.template = "flatly"
+# --------------------------
+# dynamic last-updated (from file metadata :) )
+# --------------------------
+def get_last_updated(path: Path) -> str:
+    """Return a formatted Arabic last-updated string from file mtime."""
+    if path.exists():
+        ts = datetime.datetime.fromtimestamp(os.path.getmtime(path))
+        return "آخر تحديث: " + ts.strftime("%Y-%m-%d %H:%M")
+    return "آخر تحديث: غير متوفر"
 
-# --------------------------
-# Constants
-# --------------------------
-LAST_UPDATED = "آخر تحديث: 2025-08-24 23:00"  # <-- hard-coded for now
 
 # --------------------------
 # Data Loading
 # --------------------------
 DATA_PATH = Path(__file__).parent / "data.xlsx"
+LAST_UPDATED = get_last_updated(DATA_PATH)  # dynamic update time
 
 def load_data(path: Path) -> pd.DataFrame:
     try:
@@ -490,6 +498,41 @@ def update_dashboard(apply_clicks, reset_clicks, regions_sel, orgs_sel, measure_
         fig_region, fig_orgs,
         reset_regions_value, reset_orgs_value
     )
+
+
+DATA_URL = "https://cbl.gov.ly/micifaf/2025/08/%D8%A5%D8%AD%D8%B5%D8%A7%D8%A6%D9%8A%D8%A9-%D8%B1%D8%A7%D8%AA%D8%A8%D9%83-%D9%84%D8%AD%D8%B8%D9%8A-%D8%A5%D8%AD%D8%A7%D9%84%D8%A9-%D8%A7%D9%84%D8%A8%D9%8A%D8%A7%D9%86%D8%A7%D8%AA-%D9%85%D9%86-%D9%88%D8%B2%D8%A7%D8%B1%D8%A9-%D8%A7%D9%84%D9%85%D8%A7%D9%84%D9%8A%D8%A9.xlsx"
+
+
+def refresh_data_file():
+    """Download the latest Excel file from CBL and refresh data.xlsx"""
+    try:
+        print(f"[{datetime.datetime.now()}] Downloading latest Excel...")
+
+        response = requests.get(DATA_URL, timeout=30)
+        response.raise_for_status()
+
+        # Save file locally
+        with open(DATA_PATH, "wb") as f:
+            f.write(response.content)
+
+        print(f"✅ Data.xlsx updated at {DATA_PATH}")
+
+        # Reload into memory so dashboard instantly reflects changes
+        global df_raw, regions, orgs
+        df_raw = load_data(DATA_PATH)
+        regions = sorted(df_raw["المنطقة"].dropna().unique()) if "المنطقة" in df_raw.columns else []
+        orgs = sorted(df_raw["الجهة"].dropna().unique()) if "الجهة" in df_raw.columns else []
+
+    except Exception as e:
+        print(f"❌ Failed to refresh data: {e}")
+
+
+# --------------------------
+# Scheduler Init (runs in background)
+# --------------------------
+scheduler = BackgroundScheduler()
+scheduler.add_job(refresh_data_file, "interval", hours=1, next_run_time=datetime.datetime.now())  
+scheduler.start()
 
 
 if __name__ == "__main__":
